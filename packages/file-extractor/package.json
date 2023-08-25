@@ -3,7 +3,12 @@
   "packageManager": "yarn@3.6.3",
   "dependencies": {
     "@types/node": "^20.5.6",
+    "rimraf": "^5.0.1",
     "ts-node": "^10.9.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "utils": "^0.0.1"
+  },
+  "scripts": {
+    "extract": "ts-node ./src/index.ts"
   }
 }
