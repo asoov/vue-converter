@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { GeneratorService } from './generator.service';
 import { ConfigService } from '@nestjs/config';
 
@@ -6,12 +6,12 @@ import { ConfigService } from '@nestjs/config';
 export class GeneratorController {
   constructor(private readonly generatorService: GeneratorService) { }
 
-  @Get()
-  async generateSingle(): Promise<string> {
-    return this.generatorService.generateSingleVue3Template();
+  @Post()
+  public async generateSingle(@Body() vueFile): Promise<string> {
+    return this.generatorService.generateSingleVue3Template(vueFile.content);
   }
 
-  @Get('multiple')
+  @Post('multiple')
   generateMultiple(): string {
     return this.generatorService.generateMultipleVue3Templates();
   }
