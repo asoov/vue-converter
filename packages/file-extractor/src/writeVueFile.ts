@@ -8,6 +8,10 @@ export const writeFileWithContent = (
 ): void => {
   const fullPath = path.join(directory, filename);
 
+  if (!fs.existsSync(directory)) {
+    fs.mkdirSync(directory, { recursive: true });
+  }
+
   fs.writeFile(fullPath, content, 'utf8', (error) => {
     if (error) {
       console.error(`Error writing to file ${fullPath}:`, error.message);
