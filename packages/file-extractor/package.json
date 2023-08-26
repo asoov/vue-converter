@@ -3,6 +3,7 @@
   "packageManager": "yarn@3.6.3",
   "dependencies": {
     "@types/node": "^20.5.6",
+    "axios": "^1.4.0",
     "rimraf": "^5.0.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2",

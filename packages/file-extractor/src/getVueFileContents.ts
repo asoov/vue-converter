@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { handleError } from 'utils';
+import { VueFile, handleError } from 'utils';
 
 /**
  * Filters the files in a directory by the provided file type.
@@ -28,7 +28,7 @@ function readFileContent(filePath: string): string {
  * @param dirPath - The path to the directory.
  * @returns An array of objects, each containing a filename and its content.
  */
-function processMatchedFiles(matchedFiles: string[], dirPath: string): Array<{ fileName: string; content: string }> {
+function processMatchedFiles(matchedFiles: string[], dirPath: string): Array<VueFile> {
   return matchedFiles.map(file => {
     const filePath = path.join(dirPath, file);
     try {
@@ -38,7 +38,7 @@ function processMatchedFiles(matchedFiles: string[], dirPath: string): Array<{ f
       handleError(new Error(`Error reading file "${file}": ${(error as Error).message}`), { throw: true });
       return null;
     }
-  }).filter(item => item !== null) as Array<{ fileName: string; content: string }>;
+  }).filter(item => item !== null) as Array<VueFile>;
 }
 
 /**
@@ -48,7 +48,7 @@ function processMatchedFiles(matchedFiles: string[], dirPath: string): Array<{ f
  * @param fileType - The desired file extension (e.g., '.txt').
  * @returns An array of objects, each containing a filename and its content.
  */
-export function getVueFileContents(dirPath: string, fileType: string): Array<{ fileName: string; content: string }> {
+export function getVueFileContents(dirPath: string, fileType: string): Array<VueFile> {
   if (!fs.existsSync(dirPath)) {
     throw new Error(`Directory "${dirPath}" does not exist.`);
   }
