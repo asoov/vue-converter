@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { OpenAI } from "openai";
 import { OpenAIService } from 'src/providers/openai.provider';
 import { generateGPTPrompt } from './generator.utils';
 import { GenerateMultipleVue3FilesResponse, GenerateSingleVue3FileRequest, GenerateSingleVue3FileResponse, VueFile } from 'utils';
