@@ -6,7 +6,8 @@ export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    const table = new dynamodb.Table(this, 'Table', {
+    const customerTable = new dynamodb.Table(this, 'Table', {
+      tableName: 'Customers',
       partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
       replicationRegions: ['eu-central-1', 'eu-west-1'],
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
