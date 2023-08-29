@@ -1,12 +1,12 @@
-import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { GeneratorModule } from './generator/generator.module';
 import { ConfigModule } from '@nestjs/config';
-import { PaymentModule } from './payment/payment.module';
+import { CustomerModule } from './customer/customer.module';
 
 @Module({
-  imports: [GeneratorModule, PaymentModule, ConfigModule.forRoot({ isGlobal: true })],
+  imports: [GeneratorModule, ConfigModule.forRoot({ isGlobal: true }), CustomerModule],
   controllers: [AppController],
   providers: [AppService],
 })
