@@ -13,7 +13,7 @@ import { ChargeCustomerTokensDTO } from './dto/recharge-customer-tokens.dto';
 export class CustomerService {
   private dbInstance: Model<Customer>;
 
-  constructor(private readonly configService: ConfigService) { }
+  constructor(private readonly configService: ConfigService) {}
 
   public async chargeAccountTokenBalance({
     request,

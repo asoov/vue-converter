@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Headers,
-  Post,
-  RawBodyRequest,
-  Req,
-} from '@nestjs/common';
+import { Controller, Headers, Post, RawBodyRequest, Req } from '@nestjs/common';
 import { CustomerService } from './customer.service';
 
 @Controller('customer')
