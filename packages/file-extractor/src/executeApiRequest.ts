@@ -1,20 +1,23 @@
 import { GenerateSingleVue3FileRequest, GenerateSingleVue3FileResponse, VueFile } from "utils";
 import axios, { AxiosResponse } from 'axios';
 
-const MAX_CONCURRENT_REQUESTS = 5; // set your own limit
+const MAX_CONCURRENT_REQUESTS = 20; // set your own limit
 
 export async function executeApiRequest(vueFiles: Array<VueFile>) {
   const singleUrl = 'http://localhost:3000/generate';
 
   const executeRequest = async (file: VueFile) => {
     try {
+      console.log('START')
       const response = await axios.post<GenerateSingleVue3FileResponse, AxiosResponse<GenerateSingleVue3FileResponse>, GenerateSingleVue3FileRequest>(singleUrl, file, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
+      console.log('DONE')
       return { success: true, data: response.data };
     } catch (error) {
+      console.log('FAIL')
       return { success: false, error };
     }
   };

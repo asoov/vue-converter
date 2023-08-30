@@ -1,0 +1,11 @@
+{
+  "availability-zones:account=714722585977:region=eu-central-1": [
+    "eu-central-1a",
+    "eu-central-1b",
+    "eu-central-1c"
+  ],
+  "hosted-zone:account=714722585977:domainName=fromthissoil.de:region=eu-central-1": {
+    "Id": "/hostedzone/Z04399351S6FO787MA8NB",
+    "Name": "fromthissoil.de."
+  }
+}

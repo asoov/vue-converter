@@ -14,7 +14,7 @@ export class GeneratorService {
   constructor(
     private readonly openAiService: OpenAIService,
     private readonly utilityService: UtilityService,
-  ) {}
+  ) { }
 
   private getScriptPartOfFile(string: string): string {
     return this.utilityService.extractJavaScriptFromHTML(string);
@@ -24,7 +24,7 @@ export class GeneratorService {
     return this.utilityService.replaceScriptTags(inputString, replacement);
   }
 
-  private async handleVueScript(scriptToConvert: string) {
+  private async generateVue3Content(scriptToConvert: string) {
     const tokensNeeded =
       this.utilityService.getNeededOpenAiTokenCountForString(scriptToConvert);
     if (tokensNeeded >= this.MAX_TOKEN_COUNT) {
@@ -40,7 +40,7 @@ export class GeneratorService {
     vueFile: GenerateSingleVue3FileRequest,
   ): Promise<GenerateSingleVue3FileResponse> {
     const scriptToConvert = this.getScriptPartOfFile(vueFile.content);
-    const result = await this.handleVueScript(scriptToConvert);
+    const result = await this.generateVue3Content(scriptToConvert);
     return {
       content: this.injectNewScriptIntoVueFile(vueFile.content, result.text),
       fileName: vueFile.fileName,
