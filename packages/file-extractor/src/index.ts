@@ -15,16 +15,16 @@ async function main() {
     process.exit(1);
   }
 
-  await clearDirectory(destDirectory)
+  await rimraf(destDirectory)
   console.log('Destination folder cleared')
   copyFiles(srcDirectory, destDirectory, '.vue');
 
   const fileContents = getVueFileContents(destDirectory, '.vue')
 
   const data = await executeApiRequest(fileContents)
-
+  console.log('DATA', data)
   if (data?.generatedVueFiles?.length) {
-    await clearDirectory('./generated')
+    await rimraf('./generated')
     data?.generatedVueFiles.forEach(generatedVueFile => {
       console.log(generatedVueFile)
       writeFileWithContent(generatedVueFile.fileName, generatedVueFile.content, './generated')

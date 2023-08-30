@@ -1,12 +1,12 @@
-import { Schema } from "dynamoose";
+import { Schema } from 'dynamoose';
 export const CustomerSchema = new Schema({
   id: {
     type: String,
-    hashKey: true
+    hashKey: true,
   },
   firstName: {
     type: String,
-    hashKey: true
+    hashKey: true,
   },
   lastName: {
     type: String,
@@ -15,11 +15,10 @@ export const CustomerSchema = new Schema({
   paid: {
     type: Boolean,
     default: false,
-    hashKey: true
+    hashKey: true,
   },
   credits: {
     type: Number,
-    hashKey: true
-  }
-})
-
+    hashKey: true,
+  },
+});

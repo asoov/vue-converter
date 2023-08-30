@@ -1,3 +1,5 @@
 import { VueFile } from "./VueFile";
 
-export class GenerateSingleVue3FileResponse extends VueFile { }
+export class GenerateSingleVue3FileResponse extends VueFile {
+  error?: string
+}

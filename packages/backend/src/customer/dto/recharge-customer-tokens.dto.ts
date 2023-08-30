@@ -1,6 +1,6 @@
-import { RawBodyRequest } from "@nestjs/common";
+import { RawBodyRequest } from '@nestjs/common';
 
 export class ChargeCustomerTokensDTO {
-  request: RawBodyRequest<any>
-  headers: Headers
+  request: RawBodyRequest<any>;
+  headers: Headers;
 }

@@ -20,6 +20,3 @@ export const writeFileWithContent = (
     console.log(`File ${fullPath} has been written successfully.`);
   });
 }
-
-// Example usage:
-writeFileWithContent('./someDirectory', 'example.txt', 'This is the file content.');

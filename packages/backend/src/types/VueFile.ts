@@ -1,3 +1,1 @@
-export type VueFile = {
-
-}
+export type VueFile = {};
