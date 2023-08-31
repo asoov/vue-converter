@@ -5,6 +5,7 @@ import { InstanceTarget } from 'aws-cdk-lib/aws-elasticloadbalancingv2-targets';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as targets from 'aws-cdk-lib/aws-route53-targets';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as ecr from 'aws-cdk-lib/aws-ecr';
 import { Construct } from 'constructs';
 
 export class InfrastructureStack extends Stack {
@@ -16,6 +17,9 @@ export class InfrastructureStack extends Stack {
       maxAzs: 3
     });
 
+    const ecrRepo = ecr.Repository.fromRepositoryName(this, 'VueConverterRepoImported', 'vue-converter-repo');
+    console.log(ecrRepo)
+
     const ec2Role = new iam.Role(this, 'MyEc2InstanceRole', {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
     });
@@ -25,11 +29,23 @@ export class InfrastructureStack extends Stack {
       resources: ['arn:aws:secretsmanager:eu-central-1:714722585977:secret:ssh-key-67OUC6'],
     }));
 
+    ec2Role.addToPolicy(new iam.PolicyStatement({
+      actions: ['ecr:GetDownloadUrlForLayer', 'ecr:BatchCheckLayerAvailability', 'ecr:ListImages'],
+      resources: [ecrRepo.repositoryArn],  // replace with your ECR repo ARN
+    }));
+
+    // Give the EC2 instance permission to access the ECR repo
+    ecrRepo.grantPull(ec2Role);
+
+
     // Create an EC2 instance with the role
-    const instance = new ec2.Instance(this, 'MyInstance', {
+    const instance = new ec2.Instance(this, 'EC2Instance', {
       instanceType: ec2.InstanceType.of(ec2.InstanceClass.T2, ec2.InstanceSize.MICRO),
       machineImage: new ec2.AmazonLinuxImage(),
       vpc,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PUBLIC,
+      },
       keyName: "Adrian's Macbook Pro",
       role: ec2Role,  // Associate the role with the instance
       userData: ec2.UserData.custom(`#!/bin/bash
@@ -37,72 +53,61 @@ export class InfrastructureStack extends Stack {
       yum update -y
       yum install -y git
       yum install -y jq  # jq is a utility to process JSON
-  
-      # Install Node Version Manager (NVM)
-      curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-      . ~/.nvm/nvm.sh
-  
-      # Install Node.js v18
-      nvm install 18
-      nvm use 18
-  
-      # Install Yarn
-      npm install -g yarn
-  
-      # Fetch the SSH key from AWS Secrets Manager
-      SSH_SECRET=$(aws secretsmanager get-secret-value --secret-id ssh-key --query SecretString --output text)
-  
-      # Store the SSH key and set permissions
-      echo "$SSH_SECRET" > /root/.ssh/id_rsa
-      chmod 600 /root/.ssh/id_rsa
-  
-      # Add GitHub to known hosts
-      ssh-keyscan github.com >> /root/.ssh/known_hosts
-  
-      # Clone your repository
-      git clone git@github.com/asoov/vue-converter /converter
-  
-      # Navigate to your repository folder and install dependencies
-      cd /converter
-      yarn install
+      yum install -y docker
+      sudo service docker start
 
-      cd packages/backend
-  
-      # Build your project
-      yarn build
-  
-      # Start your application
-      yarn start
+      # Login to ECR
+      aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 714722585977.dkr.ecr.eu-central-1.amazonaws.com
+
+
+      # Pull the Docker image from your private ECR repository
+      docker pull 714722585977.dkr.ecr.eu-central-1.amazonaws.com/vue-converter-repo:tag  
+
+      # Run the Docker container
+      docker run -p 80:80 714722585977.dkr.ecr.eu-central-1.amazonaws.com/vue-converter-repo:tag  
     `),
+    });
+
+
+    // Explicitly create a security group for the Load Balancer
+    const lbSg = new ec2.SecurityGroup(this, 'MyLoadBalancerSG', { vpc });
+    lbSg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80));  // Or any other rules you need
+    lbSg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443));  // Or any other rules you need
+
+
+    // Create a Load Balancer
+    const lb = new elbv2.ApplicationLoadBalancer(this, 'MyLoadBalancer', {
+      vpc,
+      internetFacing: true,
+      securityGroup: lbSg
     });
 
 
     // Create a security group for the instance
     const sg = new ec2.SecurityGroup(this, 'MyInstanceSG', { vpc });
-    sg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80));
-    sg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443));
-    sg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443));
+    sg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22));
+    sg.addIngressRule(ec2.Peer.securityGroupId(lbSg.securityGroupId), ec2.Port.tcp(80))
 
-    const bastion = new ec2.BastionHostLinux(this, 'MyBastion', {
-      vpc,
-    })
-    bastion.allowSshAccessFrom(ec2.Peer.anyIpv4())
 
     // Attach security group to instance
     instance.addSecurityGroup(sg);
 
-    // Create a Load Balancer
-    const lb = new elbv2.ApplicationLoadBalancer(this, 'MyLoadBalancer', {
-      vpc,
-      internetFacing: true
-    });
 
-    const listener = lb.addListener('MyListener', {
+
+    const listenerHttps = lb.addListener('HTTPSListener', {
       port: 443,
       certificates: [{ certificateArn: process.env.ACM_CERTIFICATE_ARN ?? '' }]
     });
+    const listenerHttp = lb.addListener('HTTPListener', {
+      port: 80,
 
-    listener.addTargets('MyTargets', {
+    });
+
+    listenerHttps.addTargets('MyTargets', {
+      port: 80,
+      targets: [new InstanceTarget(instance)]
+    });
+    listenerHttp.addTargets('MyTargets', {
       port: 80,
       targets: [new InstanceTarget(instance)]
     });
