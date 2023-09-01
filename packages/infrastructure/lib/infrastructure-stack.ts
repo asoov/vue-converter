@@ -6,11 +6,22 @@ import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as targets from 'aws-cdk-lib/aws-route53-targets';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
+import * as logs from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
+
+    const logGroup = new logs.LogGroup(this, 'MyLogGroup', {
+      logGroupName: 'VueConverter',
+      retention: logs.RetentionDays.ONE_MONTH,
+    });
+
+    new logs.CfnLogStream(this, 'MyLogStream', {
+      logGroupName: logGroup.logGroupName,
+      logStreamName: 'VueConverterBackend',
+    });
 
     // Create a VPC
     const vpc = new ec2.Vpc(this, 'MyVpc', {

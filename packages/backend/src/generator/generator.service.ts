@@ -7,6 +7,7 @@ import {
   VueFile,
 } from 'utils';
 import { UtilityService } from 'src/providers/utility.provider';
+import { CloudWatchLogsService } from 'src/providers/cloudwatch-logs.service';
 
 @Injectable()
 export class GeneratorService {
@@ -14,6 +15,7 @@ export class GeneratorService {
   constructor(
     private readonly openAiService: OpenAIService,
     private readonly utilityService: UtilityService,
+    private readonly cloudWatchLogsService: CloudWatchLogsService
   ) { }
 
   private getScriptPartOfFile(string: string): string {
@@ -41,6 +43,7 @@ export class GeneratorService {
   ): Promise<GenerateSingleVue3FileResponse> {
     const scriptToConvert = this.getScriptPartOfFile(vueFile.content);
     const result = await this.generateVue3Content(scriptToConvert);
+    this.cloudWatchLogsService.logMessage(`successfully converted file: ${vueFile.fileName}`)
     return {
       content: this.injectNewScriptIntoVueFile(vueFile.content, result.text),
       fileName: vueFile.fileName,
