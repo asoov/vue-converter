@@ -6,25 +6,14 @@ import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as targets from 'aws-cdk-lib/aws-route53-targets';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
-import * as logs from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    const logGroup = new logs.LogGroup(this, 'MyLogGroup', {
-      logGroupName: 'VueConverter',
-      retention: logs.RetentionDays.ONE_MONTH,
-    });
-
-    new logs.CfnLogStream(this, 'MyLogStream', {
-      logGroupName: logGroup.logGroupName,
-      logStreamName: 'VueConverterBackend',
-    });
-
     // Create a VPC
-    const vpc = new ec2.Vpc(this, 'MyVpc', {
+    const vpc = new ec2.Vpc(this, 'VPC', {
       maxAzs: 3
     });
 
@@ -81,13 +70,13 @@ export class InfrastructureStack extends Stack {
 
 
     // Explicitly create a security group for the Load Balancer
-    const lbSg = new ec2.SecurityGroup(this, 'MyLoadBalancerSG', { vpc });
+    const lbSg = new ec2.SecurityGroup(this, 'LoadBalancerSG', { vpc });
     lbSg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80));  // Or any other rules you need
     lbSg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443));  // Or any other rules you need
 
 
     // Create a Load Balancer
-    const lb = new elbv2.ApplicationLoadBalancer(this, 'MyLoadBalancer', {
+    const lb = new elbv2.ApplicationLoadBalancer(this, 'LoadBalancer', {
       vpc,
       internetFacing: true,
       securityGroup: lbSg
@@ -95,7 +84,7 @@ export class InfrastructureStack extends Stack {
 
 
     // Create a security group for the instance
-    const sg = new ec2.SecurityGroup(this, 'MyInstanceSG', { vpc });
+    const sg = new ec2.SecurityGroup(this, 'Instance security group', { vpc });
     sg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22));
     sg.addIngressRule(ec2.Peer.securityGroupId(lbSg.securityGroupId), ec2.Port.tcp(80))
 
@@ -114,11 +103,11 @@ export class InfrastructureStack extends Stack {
 
     });
 
-    listenerHttps.addTargets('MyTargets', {
+    listenerHttps.addTargets('HTTPSListenerTargets', {
       port: 80,
       targets: [new InstanceTarget(instance)]
     });
-    listenerHttp.addTargets('MyTargets', {
+    listenerHttp.addTargets('HTTPListenerTargets', {
       port: 80,
       targets: [new InstanceTarget(instance)]
     });
