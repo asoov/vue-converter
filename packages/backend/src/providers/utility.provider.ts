@@ -5,11 +5,11 @@ import { encode } from 'gpt-3-encoder';
 @Injectable()
 export class UtilityService {
   private RAPID_API_PROXY_SECRET_HEADER_KEY = 'x-rapidapi-proxy-secret';
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   checkRapidApiProxySecret(headers: Record<string, string>): void {
     if (!headers[this.RAPID_API_PROXY_SECRET_HEADER_KEY]) {
-      throw new BadRequestException('Request denied.');
+      throw new BadRequestException('No Proxy Secret provided.');
     }
     const receivedRapidApiProxySecret =
       headers[this.RAPID_API_PROXY_SECRET_HEADER_KEY];
