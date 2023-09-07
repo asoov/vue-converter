@@ -41,7 +41,7 @@ export class InfrastructureStack extends Stack {
     // Create an EC2 instance with the role
     const instance = new ec2.Instance(this, 'EC2Instance', {
       instanceType: ec2.InstanceType.of(ec2.InstanceClass.T2, ec2.InstanceSize.MICRO),
-      machineImage: new ec2.AmazonLinuxImage(),
+      machineImage: new ec2.AmazonLinuxImage({ generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2 }),
       vpc,
       vpcSubnets: {
         subnetType: ec2.SubnetType.PUBLIC,
@@ -49,23 +49,44 @@ export class InfrastructureStack extends Stack {
       keyName: "Adrian's Macbook Pro",
       role: ec2Role,  // Associate the role with the instance
       userData: ec2.UserData.custom(`#!/bin/bash
-      # Update packages and install necessary packages
-      yum update -y
-      yum install -y git
-      yum install -y jq  # jq is a utility to process JSON
-      yum install -y docker
-      sudo service docker start
+        # Create a script that contains the actual user data logic
+        echo '#!/bin/bash
+        # Add your startup logic here
+        # Update packages and install necessary packages
+        yum update -y
+        yum install -y git
+        yum install -y jq  # jq is a utility to process JSON
+        yum install -y docker
+        sudo service docker start
 
-      # Login to ECR
-      aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 714722585977.dkr.ecr.eu-central-1.amazonaws.com
+        # Login to ECR
+        aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 714722585977.dkr.ecr.eu-central-1.amazonaws.com
 
+        # Pull the Docker image from your private ECR repository
+        docker pull 714722585977.dkr.ecr.eu-central-1.amazonaws.com/vue-converter-repo:tag  
 
-      # Pull the Docker image from your private ECR repository
-      docker pull 714722585977.dkr.ecr.eu-central-1.amazonaws.com/vue-converter-repo:tag  
+        # Run the Docker container
+        docker run -p 80:80 714722585977.dkr.ecr.eu-central-1.amazonaws.com/vue-converter-repo:tag  
+        ' > /root/startup-script.sh
 
-      # Run the Docker container
-      docker run -p 80:80 714722585977.dkr.ecr.eu-central-1.amazonaws.com/vue-converter-repo:tag  
-    `),
+        # Make the script executable
+        chmod +x /root/startup-script.sh
+
+        # Create a systemd service unit file to run the script
+        echo '[Unit]
+        Description=Run user data on startup
+        After=network.target
+
+        [Service]
+        ExecStart=/bin/bash /root/startup-script.sh
+
+        [Install]
+        WantedBy=multi-user.target' > /etc/systemd/system/userdata.service
+
+        # Enable and start the service so it runs on every subsequent boot
+        systemctl enable userdata.service
+        systemctl start userdata.service
+      `),
     });
 
 
