@@ -5,6 +5,9 @@ import "./assets/css/styles.css";
 import router from "./router/index";
 import { Quasar } from 'quasar'
 
+// Import Quasar css
+import 'quasar/src/css/index.sass'
+
 // Import icon libraries
 import '@quasar/extras/material-icons/material-icons.css'
 
@@ -20,6 +23,7 @@ app
       domain: import.meta.env.VITE_AUTH0_DOMAIN,
       clientId: import.meta.env.VITE_AUTH0_CLIENT_ID,
       authorizationParams: {
+        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
         redirect_uri: import.meta.env.VITE_AUTH0_CALLBACK_URL,
       },
     })
