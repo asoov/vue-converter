@@ -12,6 +12,8 @@ async function bootstrap() {
   dynamoose.aws.ddb.set(ddb);
   const app = await NestFactory.create(AppModule, { rawBody: true });
   console.log(process.env.PORT)
+
+  app.enableCors()
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
