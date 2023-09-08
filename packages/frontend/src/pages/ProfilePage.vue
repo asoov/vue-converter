@@ -14,9 +14,7 @@
               <span class="profile__description">{{ user.email }}</span>
             </div>
           </div>
-          <div class="profile__details">
-            <CodeSnippet title="User Profile Object" :code="code" />
-          </div>
+
         </div>
       </div>
     </div>
@@ -25,11 +23,9 @@
 
 <script setup>
 import { computed } from 'vue'
-import CodeSnippet from "@/components/code-snippet.vue";
-import PageLayout from "@/components/page-layout.vue";
+import PageLayout from "@/components/PageLayout.vue";
 import { useAuth0 } from "@auth0/auth0-vue";
 
 const { user } = useAuth0()
-console.log(user)
-const code = computed(() => JSON.stringify(user.value, null, 2));
+console.log(user.value)
 </script>

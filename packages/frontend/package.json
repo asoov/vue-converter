@@ -10,7 +10,11 @@
   },
   "dependencies": {
     "@auth0/auth0-vue": "^2.3.1",
+    "@quasar/extras": "^1.16.6",
+    "@quasar/vite-plugin": "^1.5.0",
     "axios": "^0.27.2",
+    "quasar": "^2.12.6",
+    "sass": "1.32.12",
     "typescript": "^5.2.2",
     "vue": "^3.2.36",
     "vue-router": "^4.0.15"

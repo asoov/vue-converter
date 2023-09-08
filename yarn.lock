@@ -1738,6 +1738,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@quasar/extras@npm:^1.16.6":
+  version: 1.16.6
+  resolution: "@quasar/extras@npm:1.16.6"
+  checksum: 615b359f05ad84e7dc8ef8c19276f4ebeb056795e268d886a5200532dd518b51629ff5aed9dac448188d2a274d50763d26b0f5dffe8e164ca9a9d625cfe53e50
+  languageName: node
+  linkType: hard
+
+"@quasar/vite-plugin@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "@quasar/vite-plugin@npm:1.5.0"
+  peerDependencies:
+    "@vitejs/plugin-vue": ^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0-beta.0
+    quasar: ^2.8.0
+    vite: ^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0-beta.0
+    vue: ^3.0.0
+  checksum: f2e6ba8b933c3cdcd3aca39194d1339ccc93562e04da63868fcf48631883f5fa10f16cfd00bcbcc275245415aacba067fd738af26211aac6807d9d6284abc96d
+  languageName: node
+  linkType: hard
+
 "@rushstack/eslint-patch@npm:^1.1.0":
   version: 1.3.3
   resolution: "@rushstack/eslint-patch@npm:1.3.3"
@@ -3960,7 +3979,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chokidar@npm:3.5.3, chokidar@npm:^3.5.3":
+"chokidar@npm:3.5.3, chokidar@npm:>=3.0.0 <4.0.0, chokidar@npm:^3.5.3":
   version: 3.5.3
   resolution: "chokidar@npm:3.5.3"
   dependencies:
@@ -9597,6 +9616,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"quasar@npm:^2.12.6":
+  version: 2.12.6
+  resolution: "quasar@npm:2.12.6"
+  checksum: ffb46bf5a665c2c47022a3ff30de2d18233195c1e4ae5c0cb69b284d56c61e762707ec0eb0c1bbbf0fc1babe04964f2f63582a944725f76acf46ddf6b69b2ac5
+  languageName: node
+  linkType: hard
+
 "querystring@npm:0.2.0":
   version: 0.2.0
   resolution: "querystring@npm:0.2.0"
@@ -10007,6 +10033,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"sass@npm:1.32.12":
+  version: 1.32.12
+  resolution: "sass@npm:1.32.12"
+  dependencies:
+    chokidar: ">=3.0.0 <4.0.0"
+  bin:
+    sass: sass.js
+  checksum: 01ddd4abce9817d2fa46f6379bacb76605e298e8ed91fc1caed21d9b8f8ac62948f973716f8a4488f4348746aa54bb47957dfef6698e8097e07846a15fa42644
+  languageName: node
+  linkType: hard
+
 "sax@npm:1.2.1":
   version: 1.2.1
   resolution: "sax@npm:1.2.1"
@@ -10275,6 +10312,8 @@ __metadata:
   resolution: "spa_vue_javascript_hello-world_composition-api@workspace:packages/frontend"
   dependencies:
     "@auth0/auth0-vue": ^2.3.1
+    "@quasar/extras": ^1.16.6
+    "@quasar/vite-plugin": ^1.5.0
     "@rushstack/eslint-patch": ^1.1.0
     "@vitejs/plugin-vue": ^2.3.3
     "@vue/eslint-config-prettier": ^7.0.0
@@ -10283,6 +10322,8 @@ __metadata:
     eslint-plugin-vue: ^8.2.0
     json-server: ^0.17.0
     prettier: ^2.5.1
+    quasar: ^2.12.6
+    sass: 1.32.12
     typescript: ^5.2.2
     vite: ^2.9.9
     vue: ^3.2.36

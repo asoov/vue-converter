@@ -1,12 +1,11 @@
-import HomePage from "@/pages/home-page.vue";
+import HomePage from "@/pages/HomePage.vue";
+import { authGuard } from "@auth0/auth0-vue";
 import { createRouter, createWebHistory } from "vue-router";
 
-const NotFoundPage = () => import("@/pages/not-found-page.vue");
-const ProfilePage = () => import("@/pages/profile-page.vue");
-const PublicPage = () => import("@/pages/public-page.vue");
-const ProtectedPage = () => import("@/pages/protected-page.vue");
-const AdminPage = () => import("@/pages/admin-page.vue");
-const CallbackPage = () => import("@/pages/callback-page.vue");
+const NotFoundPage = () => import("@/pages/NotFoundPage.vue");
+const ProfilePage = () => import("@/pages/ProfilePage.vue");
+const CallbackPage = () => import("@/pages/CallBackPage.vue");
+const DashboardPage = () => import("@/pages/DashboardPage.vue");
 
 const routes = [
   {
@@ -18,21 +17,13 @@ const routes = [
     path: "/profile",
     name: "profile",
     component: ProfilePage,
+    beforeEnter: authGuard
   },
   {
-    path: "/public",
-    name: "public",
-    component: PublicPage,
-  },
-  {
-    path: "/protected",
-    name: "protected",
-    component: ProtectedPage,
-  },
-  {
-    path: "/admin",
-    name: "admin",
-    component: AdminPage,
+    path: "/dashboard",
+    name: "dashboard",
+    component: DashboardPage,
+    beforeEnter: authGuard
   },
   {
     path: "/:catchAll(.*)",
