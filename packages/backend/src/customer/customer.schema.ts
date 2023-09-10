@@ -6,19 +6,15 @@ export const CustomerSchema = new Schema({
   },
   firstName: {
     type: String,
-    hashKey: true,
   },
   lastName: {
     type: String,
-    hashKey: true,
   },
   paid: {
     type: Boolean,
     default: false,
-    hashKey: true,
   },
-  credits: {
+  aiCredits: {
     type: Number,
-    hashKey: true,
   },
 });
