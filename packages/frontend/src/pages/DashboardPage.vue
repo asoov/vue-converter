@@ -9,7 +9,8 @@
           </q-card-section>
 
           <q-card-section>
-            <div class="text-h2">1000</div>
+            <div v-if="customerData.aiCredits !== (null || undefined)" class="text-h2">{{ customerData.aiCredits }}</div>
+            <q-spinner v-else color="white" size="3em" />
           </q-card-section>
 
           <q-card-actions>
@@ -18,11 +19,11 @@
         </q-card>
         <q-card class="col my-card bg-primary text-white">
           <q-card-section>
-            <div class="text-h4">Token Balance</div>
+            <div class="text-h4">Usage</div>
           </q-card-section>
 
           <q-card-section>
-            <div class="text-h2">1000</div>
+            <div class="text-h2"></div>
           </q-card-section>
 
           <q-card-actions>
@@ -39,26 +40,30 @@
 import PageLayout from '@/components/PageLayout.vue'
 import { useAuth0 } from '@auth0/auth0-vue';
 import axios from 'axios'
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
+const customerData: any = ref({})
 const loading = ref(true)
-const auth0 = useAuth0()
-const getCustomerData = async () => {
-  const accessToken = await auth0.getAccessTokenSilently()
-  const data = await axios.post('http://localhost:9000/customer/get-customer', {
+const { getAccessTokenSilently, user } = useAuth0()
 
-  }, {
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-    }
-  })
-  console.log(data)
+const getCustomerData = async (): Promise<any> => {
+  try {
+    loading.value = true;
+    const accessToken = await getAccessTokenSilently()
+    const response = await axios.post('http://localhost:9000/customer/get-customer', {
+      id: user.value?.sub
+    }, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      }
+    })
+    customerData.value = response.data;
+  } catch (error) {
+    console.error('Failed to fetch customer data', error);
+  } finally {
+    loading.value = false;
+  }
 }
-try {
-  getCustomerData()
-} catch (error) {
 
-} finally {
-  loading.value = false
-}
+onMounted(() => getCustomerData())
 </script>
