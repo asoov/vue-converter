@@ -6,11 +6,26 @@ import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as targets from 'aws-cdk-lib/aws-route53-targets';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import { DynamoValues } from 'utils'
 
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
+
+    // Create DynamoDB customer database
+
+    new dynamodb.Table(this, 'CustomerDB', {
+      tableName: DynamoValues.TableName,
+      partitionKey: {
+        name: 'id',
+        type: dynamodb.AttributeType.STRING,
+      },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,  // Set the billing mode to PAY_PER_REQUEST (or PROVISIONED if preferred)
+      removalPolicy: cdk.RemovalPolicy.DESTROY, // Should keep customer database when stack is destroyed
+    });
 
     // Create a VPC
     const vpc = new ec2.Vpc(this, 'VPC', {
