@@ -1,8 +1,6 @@
 <template>
-  <PageLayout>
-  </PageLayout>
+  Home
 </template>
 
 <script setup lang="ts">
-import PageLayout from "@/components/PageLayout.vue";
 </script>

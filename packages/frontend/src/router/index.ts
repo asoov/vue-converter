@@ -6,6 +6,7 @@ const NotFoundPage = () => import("@/pages/NotFoundPage.vue");
 const ProfilePage = () => import("@/pages/ProfilePage.vue");
 const CallbackPage = () => import("@/pages/CallBackPage.vue");
 const DashboardPage = () => import("@/pages/DashboardPage.vue");
+const TransformSinglePage = () => import("@/pages/TransformSinglePage.vue");
 
 const routes = [
   {
@@ -23,6 +24,12 @@ const routes = [
     path: "/dashboard",
     name: "dashboard",
     component: DashboardPage,
+    beforeEnter: authGuard
+  },
+  {
+    path: "/transform/single",
+    name: "transform-single",
+    component: TransformSinglePage,
     beforeEnter: authGuard
   },
   {

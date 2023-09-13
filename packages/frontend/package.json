@@ -1,5 +1,5 @@
 {
-  "name": "spa_vue_javascript_hello-world_composition-api",
+  "name": "frontend",
   "version": "0.0.0",
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 4040",
@@ -13,10 +13,12 @@
     "@quasar/extras": "^1.16.6",
     "@quasar/vite-plugin": "^1.5.0",
     "axios": "^0.27.2",
+    "prismjs": "^1.29.0",
     "quasar": "^2.12.6",
     "sass": "1.32.12",
     "typescript": "^5.2.2",
     "vue": "^3.2.36",
+    "vue-prism-editor": "alpha",
     "vue-router": "^4.0.15"
   },
   "devDependencies": {
@@ -27,6 +29,7 @@
     "eslint-plugin-vue": "^8.2.0",
     "json-server": "^0.17.0",
     "prettier": "^2.5.1",
+    "utils": "^0.0.1",
     "vite": "^2.9.9"
   }
 }
