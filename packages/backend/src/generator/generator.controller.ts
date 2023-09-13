@@ -2,7 +2,8 @@ import {
   Controller,
   Post,
   Body,
-  Headers
+  Headers,
+  UseGuards
 } from '@nestjs/common';
 import { GeneratorService } from './generator.service';
 import {
@@ -12,6 +13,23 @@ import {
   GenerateMultipleVue3FilesResponse,
 } from 'utils';
 import { UtilityService } from 'src/providers/utility.provider';
+import { AuthorizationGuard } from 'src/authorization/authorization.guard';
+
+@Controller('generate-web')
+export class GeneratorWebController {
+  constructor(
+    private readonly generatorService: GeneratorService, private readonly utilityService: UtilityService,
+  ) { }
+
+  @UseGuards(AuthorizationGuard)
+  @Post()
+  public async generateSingle(
+    @Body() vueFile: GenerateSingleVue3FileRequest,
+    @Headers() headers: Record<string, string>,
+  ): Promise<GenerateSingleVue3FileResponse> {
+    return await this.generatorService.generateSingleVue3Template(vueFile);
+  }
+}
 
 @Controller('generate')
 export class GeneratorController {
@@ -35,12 +53,12 @@ export class GeneratorController {
     return this.generatorService.checkVueFileContentLength(content);
   }
 
-  @Post('multiple')
-  public async generateMultiple(
-    @Body() { vueFilesToConvert }: GenerateMultipleVue3FilesRequest,
-  ): Promise<GenerateMultipleVue3FilesResponse> {
-    return await this.generatorService.generateMultipleVue3Templates(
-      vueFilesToConvert,
-    );
-  }
+  // @Post('multiple')
+  // public async generateMultiple(
+  //   @Body() { vueFilesToConvert }: GenerateMultipleVue3FilesRequest,
+  // ): Promise<GenerateMultipleVue3FilesResponse> {
+  //   return await this.generatorService.generateMultipleVue3Templates(
+  //     vueFilesToConvert,
+  //   );
+  // }
 }

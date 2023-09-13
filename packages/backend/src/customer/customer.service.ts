@@ -7,12 +7,13 @@ import { ChargeCustomerTokensDTO } from './dto/recharge-customer-tokens.dto';
 import * as dynamoose from 'dynamoose'
 import { CustomerSchema } from './customer.schema';
 import { CloudWatchLogsService } from '../providers/cloudwatch-logs.service';
+import { UtilityService } from 'src/providers/utility.provider';
 
 
 @Injectable()
 export class CustomerService {
   private dbInstance: Model<Customer>;
-  constructor(private readonly configService: ConfigService, private readonly cloudWatchLogsService: CloudWatchLogsService) {
+  constructor(private readonly configService: ConfigService, private readonly utilityService: UtilityService, private readonly cloudWatchLogsService: CloudWatchLogsService) {
     this.dbInstance = dynamoose.model<Customer>('VueConverterTable2', CustomerSchema)
   }
 
@@ -20,12 +21,9 @@ export class CustomerService {
     return await this.dbInstance.get({ id })
   }
 
-  private removeAuth0Prefix(string: string): string {
-    return string.replace(/^auth0\|/, '');
-  }
 
   public async createCustomerFromAuth0(customer: Customer): Promise<Customer> {
-    const customerId = this.removeAuth0Prefix(customer.id)
+    const customerId = this.utilityService.removeAuth0Prefix(customer.id)
     try {
       const data = await this.dbInstance.create({ ...customer, id: customerId })
       return data
@@ -38,7 +36,6 @@ export class CustomerService {
     request,
     headers,
   }: ChargeCustomerTokensDTO) {
-    console.log('dieseeeeeeee')
     const stripeSignature = headers['stripe-signature'];
     const endpointSecret = this.configService.get<string>(
       'STRIPE_WEBHOOK_ENDPOINT_SECRET',

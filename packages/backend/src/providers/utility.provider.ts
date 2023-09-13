@@ -30,7 +30,13 @@ export class UtilityService {
     }
   }
 
+  removeAuth0Prefix(string: string): string {
+    return string.replace(/^auth0\|/, '');
+  }
+
   replaceScriptTags(inputString: string, replacement: string) {
+    console.log('INPUT', inputString)
+    console.log('REPLACEMENT', replacement)
     return inputString.replace(
       /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
       replacement,
