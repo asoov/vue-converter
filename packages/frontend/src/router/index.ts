@@ -7,6 +7,8 @@ const ProfilePage = () => import("@/pages/ProfilePage.vue");
 const CallbackPage = () => import("@/pages/CallBackPage.vue");
 const DashboardPage = () => import("@/pages/DashboardPage.vue");
 const TransformSinglePage = () => import("@/pages/TransformSinglePage.vue");
+const TransformMultiplePage = () => import("@/pages/TransformMultiplePage.vue");
+const BuyTokensPage = () => import("@/pages/BuyTokensPage.vue");
 
 const routes = [
   {
@@ -27,9 +29,21 @@ const routes = [
     beforeEnter: authGuard
   },
   {
+    path: "/buytokens",
+    name: "buytokens",
+    component: BuyTokensPage,
+    beforeEnter: authGuard
+  },
+  {
     path: "/transform/single",
     name: "transform-single",
     component: TransformSinglePage,
+    beforeEnter: authGuard
+  },
+  {
+    path: "/transform/multiple",
+    name: "transform-multiple",
+    component: TransformMultiplePage,
     beforeEnter: authGuard
   },
   {

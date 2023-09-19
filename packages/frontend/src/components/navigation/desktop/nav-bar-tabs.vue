@@ -2,6 +2,7 @@
   <div class="nav-bar__tabs">
     <NavBarTab path="/dashboard" label="Dashboard" />
     <NavBarTab path="/profile" label="Profile" />
+    <NavBarTab path="/buytokens" label="Buy Tokens" />
   </div>
 </template>
 
