@@ -18,17 +18,23 @@ export class CustomerService {
   }
 
   public async getCustomerById(id: string): Promise<Customer> {
-    return await this.dbInstance.get({ id })
+    const customerId = this.utilityService.removeAuth0Prefix(id)
+    return await this.dbInstance.get({ id: customerId })
   }
 
 
   public async createCustomerFromAuth0(customer: Customer): Promise<Customer> {
-    const customerId = this.utilityService.removeAuth0Prefix(customer.id)
     try {
-      const data = await this.dbInstance.create({ ...customer, id: customerId })
+      const customerId = this.utilityService.removeAuth0Prefix(customer.id)
+      const customerExisting = await this.getCustomerById(customerId)
+      if (customerExisting) {
+        return customerExisting
+      }
+      const data = await this.dbInstance.create({ ...customer, id: customerId, finishedProcesses: [] })
       return data
     } catch (e) {
-      throw new ServiceUnavailableException()
+      console.log(e)
+      throw new InternalServerErrorException()
     }
   }
 

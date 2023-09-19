@@ -1,4 +1,5 @@
 import { Schema } from 'dynamoose';
+import { Process } from './entities/customer.entity';
 export const CustomerSchema = new Schema({
   id: {
     type: String,
@@ -17,4 +18,7 @@ export const CustomerSchema = new Schema({
   aiCredits: {
     type: Number,
   },
+  finishedProcesses: {
+    type: Array<Process>
+  }
 });

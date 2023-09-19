@@ -10,6 +10,7 @@ export class CustomerController {
   @Post('get-customer')
   @UseGuards(AuthorizationGuard)
   public async getCustomer(@Body() { id }: Customer): Promise<Customer> {
+    console.log(id)
     return await this.customerService.getCustomerById(id)
   }
 
