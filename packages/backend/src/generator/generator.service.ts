@@ -87,7 +87,7 @@ export class GeneratorService {
     };
   }
 
-  private calculateTokensNeededForMultipleFiles(files: Array<Express.Multer.File>): number {
+  public calculateTokensNeededForMultipleFiles(files: Array<Express.Multer.File>): number {
     let tokensNeeded = 0;
     files.forEach((file) => {
       const fileContent = file.buffer.toString('utf-8')
@@ -121,15 +121,19 @@ export class GeneratorService {
       .promise();
   }
 
+  private filterFilesByFileType(files: Array<Express.Multer.File>, fileType: string) {
+    return files.filter(file => file.originalname.endsWith('.vue'))
+  }
+
   public async generateMultipleVue3Templates(
-    vueFiles: Array<Express.Multer.File>,
+    files: Array<Express.Multer.File>,
     customerId: string
   ): Promise<any> {
     try {
       const sanitizedCustomerId = this.utilityService.removeAuth0Prefix(customerId)
 
       // Check if customer has enough tokens for files
-      const tokensNeededForAllFiles = this.calculateTokensNeededForMultipleFiles(vueFiles)
+      const tokensNeededForAllFiles = this.calculateTokensNeededForMultipleFiles(files)
       const customer = await this.customerService.getCustomerById(sanitizedCustomerId)
       this.checkIfCustomerHasEnoughTokens({ customer, tokensNeeded: tokensNeededForAllFiles })
 
@@ -137,6 +141,8 @@ export class GeneratorService {
 
       const bucketName = randomUUID()
       await this.createBucketWithLifecyclePolicy(bucketName)
+
+      const vueFiles = this.filterFilesByFileType(files, '.vue')
 
       for (const file of vueFiles) {
         const fileContent = file.buffer.toString('utf-8');
