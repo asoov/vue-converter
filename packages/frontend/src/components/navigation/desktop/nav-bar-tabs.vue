@@ -1,5 +1,6 @@
 <template>
   <div class="nav-bar__tabs">
+    <NavBarTab path="/transform/multiple" label="Transform Code" />
     <NavBarTab path="/dashboard" label="Dashboard" />
     <NavBarTab path="/profile" label="Profile" />
     <NavBarTab path="/buytokens" label="Buy Tokens" />

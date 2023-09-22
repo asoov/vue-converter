@@ -1,6 +1,6 @@
 <template>
   <div class="main">
-    <div v-if="!loading" :style="isDragging && 'border-color: green;'" class="dropzone-container" @dragover="dragover"
+    <div :style="isDragging && 'border-color: green;'" class="dropzone-container" @dragover="dragover"
       @dragleave="dragleave" @drop="drop">
       <input type="file" multiple name="file" id="fileInput" class="hidden-input" @change="onChange" ref="file"
         accept=".vue" />
@@ -13,8 +13,6 @@
       <div class="preview-container mt-4" v-if="files.length">
         <div v-for="file in files" :key="file.name" class="preview-card">
           <div>
-
-
             <p>
               {{ file.name }}
             </p>
@@ -27,18 +25,11 @@
         </div>
       </div>
     </div>
-    <q-btn @click="$emit('upload')" :loading="loading" color="primary">Upload & Convert</q-btn>
   </div>
 </template>
 
 <script>
 export default {
-  props: {
-    loading: {
-      type: Boolean,
-      default: false
-    }
-  },
   data() {
     return {
       isDragging: false,
@@ -80,20 +71,19 @@ export default {
 </script>
 <style scoped>
 .main {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
   gap: 16px;
   align-items: center;
-  height: 100vh;
   justify-content: center;
   text-align: center;
   color: black
 }
 
 .dropzone-container {
+  width: 100%;
   padding: 4rem;
-  background: #f7fafc;
   border: 2px dashed;
   border-color: #9e9e9e;
 }
@@ -114,7 +104,10 @@ export default {
 
 .preview-container {
   display: flex;
+  flex-wrap: wrap;
   margin-top: 2rem;
+  max-height: 400px;
+  overflow: auto;
 }
 
 .preview-card {

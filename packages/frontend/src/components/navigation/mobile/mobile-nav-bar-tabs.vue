@@ -1,5 +1,6 @@
 <template>
   <div class="mobile-nav-bar__tabs">
+    <MobileNavBarTab path="/transform/multiple" label="Transform Code" />
     <MobileNavBarTab path="/profile" label="Profile" />
     <MobileNavBarTab path="/dashboard" label="Dashboard" />
     <MobileNavBarTab path="/buytokens" label="Buy Tokens" />
