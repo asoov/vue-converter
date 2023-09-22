@@ -56,8 +56,6 @@ export class CustomerService {
       endpointSecret,
     });
 
-    console.log(event)
-
     // Successfully constructed event
     console.log('✅ Success:', event.id);
 
@@ -66,31 +64,23 @@ export class CustomerService {
 
 
   private handleStripeEvent(event: Stripe.Event) {
-    // Cast event data to Stripe object
-    if (event.type === 'payment_intent.succeeded') {
-      const stripeObject: Stripe.PaymentIntent = event.data
-        .object as Stripe.PaymentIntent;
-      console.log(`💰 PaymentIntent status: ${stripeObject.status}`);
-    } else if (event.type === 'charge.succeeded') {
-      const charge = event.data.object as Stripe.Charge;
-      console.log(`💵 Charge id: ${charge.id}`);
-    } else if (event.type === 'checkout.session.completed') {
+    if (event.type === 'checkout.session.completed') {
       this.handleCheckoutSessionCompleted(event)
     } else {
       console.warn(`🤷‍♀️ Unhandled event type: ${event.type}`);
     }
   };
 
-  private handleCheckoutSessionCompleted(event: Stripe.Event) {
-    // Why does stripe not provide fucking types for their Payment events?!?!?!
-    if (!(event.data.object as any).client_reference_id) {
-      this.logErrorToCloudwatch(`Stripe hook didn't provide a client_reference_id: ${event.data.object}`)
+  private async handleCheckoutSessionCompleted(event: Stripe.Event) {
+    const eventDataObject = event.data.object as Stripe.Checkout.Session
+    if (!eventDataObject.client_reference_id) {
+      this.logErrorToCloudwatch(`Stripe hook didn't provide a client_reference_id: ${eventDataObject.toString()}`)
       throw new BadRequestException('Charging the account with tokens went wrong')
     }
-    const customerId = (event.data.object as any).client_reference_id
-    const tokenAmount = (event.data.object as any).amount_total
+    const customerId = eventDataObject.client_reference_id
+    const tokenAmount = eventDataObject.amount_total
 
-    this.writeTokensToCustomerDB({ customerId, purchasedTokenCount: tokenAmount })
+    await this.writeTokensToCustomerDB({ customerId, purchasedTokenCount: tokenAmount })
   }
 
   private checkStripeSignatureAndReturnEvent({
@@ -128,6 +118,7 @@ export class CustomerService {
         aiCredits: newTokenCount
       })
     } catch (error) {
+      this.logErrorToCloudwatch(`writeTokensToCustomerDB: Something went wrong writing to customer ${customerId}, purchasedTokenCount: ${purchasedTokenCount}`)
       throw new InternalServerErrorException(error)
     }
 

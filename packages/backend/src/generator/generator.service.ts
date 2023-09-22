@@ -80,7 +80,7 @@ export class GeneratorService {
     await this.deductTokensFromCustomerAccount(customer, tokensNeeded)
 
     this.cloudWatchLogsService.logMessage(`successfully converted file: ${vueFile.fileName}`)
-    console.log('RESULT', result)
+
     return {
       content: this.injectNewScriptIntoVueFile(vueFile.content, result.text),
       fileName: vueFile.fileName,
@@ -125,6 +125,23 @@ export class GeneratorService {
     return files.filter(file => file.originalname.endsWith('.vue'))
   }
 
+
+  private async processVueFile(file: Express.Multer.File, customer: Customer) {
+    const fileContent = file.buffer.toString('utf-8');
+    const fileName = file.originalname;
+
+    const scriptContentOfFile = this.getScriptPartOfFile(fileContent)
+    const tokensNeeded = this.utilityService.getNeededOpenAiTokenCountForString(scriptContentOfFile)
+
+    const result = await this.generateVue3Content(scriptContentOfFile)
+    await this.deductTokensFromCustomerAccount(customer, tokensNeeded)
+
+    return {
+      newFileContent: this.injectNewScriptIntoVueFile(fileContent, result.text),
+      fileName
+    }
+  }
+
   public async generateMultipleVue3Templates(
     files: Array<Express.Multer.File>,
     customerId: string
@@ -145,16 +162,7 @@ export class GeneratorService {
       const vueFiles = this.filterFilesByFileType(files, '.vue')
 
       for (const file of vueFiles) {
-        const fileContent = file.buffer.toString('utf-8');
-        const fileName = file.originalname;
-
-        const scriptContentOfFile = this.getScriptPartOfFile(fileContent)
-        const tokensNeeded = this.utilityService.getNeededOpenAiTokenCountForString(scriptContentOfFile)
-
-        const result = await this.generateVue3Content(scriptContentOfFile)
-        await this.deductTokensFromCustomerAccount(customer, tokensNeeded)
-
-        const newFileContent = this.injectNewScriptIntoVueFile(fileContent, result.text)
+        const { newFileContent, fileName } = await this.processVueFile(file, customer)
 
         processedFiles.push({ fileName, content: newFileContent })
       }
@@ -174,7 +182,7 @@ export class GeneratorService {
 
       unlink()
 
-      this.addBucketIdToCustomerDb(bucketName, customer, processedFiles.length, presignedUrl)
+      await this.addBucketIdToCustomerDb(bucketName, customer, processedFiles.length, presignedUrl)
 
       return { presignedUrl }
 
@@ -219,17 +227,32 @@ export class GeneratorService {
   }
 
   private async addBucketIdToCustomerDb(bucketName: string, customer: Customer, fileCount: number, signedUrl: string) {
-    await this.dbInstance.update({ id: customer.id }, {
-      finishedProcesses: [
-        ...(customer.finishedProcesses),
-        {
-          timestamp: new Date().toDateString(),
-          bucketName: bucketName,
-          signedUrls: [signedUrl],
-          fileCount: fileCount
-        }
-      ]
-    })
+    try {
+      // Step 1: Retrieve the existing item
+      const customerData = await this.customerService.getCustomerById(customer.id)
+
+      if (!customerData) {
+        throw new Error('Customer not found');
+      }
+
+      // Step 2: Modify the array in your application code
+      const finishedProcesses = customerData.finishedProcesses || [];
+      finishedProcesses.push({
+        timestamp: new Date().toDateString(),
+        bucketName: bucketName,
+        signedUrls: [signedUrl],
+        fileCount: fileCount,
+      });
+
+      console.log(finishedProcesses)
+
+      // Step 3: Put the item back
+      customerData.finishedProcesses = finishedProcesses;
+      await customerData.save();
+
+    } catch (error) {
+      console.error('An error occurred:', error);
+    }
   }
 
   public checkVueFileContentLength(vueFileContent: string): { valid: boolean } {
