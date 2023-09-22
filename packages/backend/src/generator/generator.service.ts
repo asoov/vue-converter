@@ -161,10 +161,8 @@ export class GeneratorService {
 
       const vueFiles = this.filterFilesByFileType(files, '.vue')
 
-      for (const file of vueFiles) {
-        const { newFileContent, fileName } = await this.processVueFile(file, customer)
-
-        processedFiles.push({ fileName, content: newFileContent })
+      for await (const result of this.processConcurrently(vueFiles, (file) => this.processVueFile(file, customer), 10)) {
+        processedFiles.push({ fileName: result.fileName, content: result.newFileContent });
       }
 
       const { zipFilePath, zipFileName, unlink } = await this.createZipFile(processedFiles)
@@ -194,6 +192,31 @@ export class GeneratorService {
     finally {
 
     }
+  }
+
+  async * processConcurrently<T, U>(items: T[], worker: (item: T) => Promise<U>, maxConcurrency: number): AsyncIterable<U> {
+    let index = 0;
+    const results: U[] = [];
+    const pending: Promise<void>[] = [];
+
+    const workOnItem = async () => {
+      if (index >= items.length) return;
+
+      const item = items[index++];
+      const result = await worker(item);
+      results.push(result);
+
+      await workOnItem();
+    };
+
+    // Start initial batch of workers
+    for (let i = 0; i < Math.min(maxConcurrency, items.length); i++) {
+      pending.push(workOnItem());
+    }
+
+    await Promise.all(pending);
+
+    yield* results;
   }
 
   private getPresignedUrl({ bucketName, zipFileName }: { bucketName: string, zipFileName: string }) {
