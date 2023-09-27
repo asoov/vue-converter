@@ -97,32 +97,9 @@ export class GeneratorService {
     return tokensNeeded
   }
 
-  public async createBucketWithLifecyclePolicy(bucketName: string) {
-    // Step 1: Create a new bucket
-    await this.s3.createBucket({ Bucket: bucketName }).promise();
-
-    // Step 2: Set a lifecycle policy to delete objects after 2 weeks
-    const lifecycleConfiguration = {
-      Rules: [
-        {
-          Status: 'Enabled',
-          Expiration: { Days: 14 },
-          ID: 'Delete after 2 weeks',
-          Prefix: '',
-        },
-      ],
-    };
-
-    await this.s3
-      .putBucketLifecycleConfiguration({
-        Bucket: bucketName,
-        LifecycleConfiguration: lifecycleConfiguration,
-      })
-      .promise();
-  }
 
   private filterFilesByFileType(files: Array<Express.Multer.File>, fileType: string) {
-    return files.filter(file => file.originalname.endsWith('.vue'))
+    return files.filter(file => file.originalname.endsWith(fileType))
   }
 
 
@@ -156,8 +133,7 @@ export class GeneratorService {
 
       let processedFiles: GenerateSingleVue3FileResponse[] = []
 
-      const bucketName = randomUUID()
-      await this.createBucketWithLifecyclePolicy(bucketName)
+      const bucketName = 'vue-converter-zips'
 
       const vueFiles = this.filterFilesByFileType(files, '.vue')
 
@@ -261,10 +237,10 @@ export class GeneratorService {
       // Step 2: Modify the array in your application code
       const finishedProcesses = customerData.finishedProcesses || [];
       finishedProcesses.push({
-        timestamp: new Date().toDateString(),
+        timestamp: new Date().toISOString(),
         bucketName: bucketName,
         signedUrls: [signedUrl],
-        fileCount: fileCount,
+        fileCount,
       });
 
       console.log(finishedProcesses)

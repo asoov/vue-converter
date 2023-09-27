@@ -1,5 +1,5 @@
 import { Schema } from 'dynamoose';
-import { Process } from './entities/customer.entity';
+
 export const CustomerSchema = new Schema({
   id: {
     type: String,
@@ -19,6 +19,22 @@ export const CustomerSchema = new Schema({
     type: Number,
   },
   finishedProcesses: {
-    type: Array<Process>
+    type: Array,
+    schema: [{
+      type: Object,
+      schema: {
+        timestamp: String,
+        bucketName: String,
+        fileCount: Number,
+        signedUrls: {
+          type: Array,
+          schema: [String]
+        },
+        name: {
+          type: String,
+          required: false // since it's optional
+        }
+      }
+    }]
   }
 });
