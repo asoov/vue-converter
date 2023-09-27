@@ -1,8 +1,6 @@
 {
   "name": "utils",
+  "exports": "./index.ts",
   "packageManager": "yarn@3.6.3",
-  "version": "0.0.1",
-  "dependencies": {
-    "rimraf": "^5.0.1"
-  }
+  "version": "0.0.1"
 }
