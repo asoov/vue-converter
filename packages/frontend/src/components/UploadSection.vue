@@ -1,26 +1,28 @@
 <template>
-  <DropZone v-if="!loadingUpload" @files-changed="onFileChange" class="col bg-primary text-white" />
-  <q-card class="text-white col bg-primary">
-    <q-card-section>
-      Available Tokens:
-      <q-spinner v-if="loadingGettingAvailableTokens" />
-      <span v-else class="text-h4">
-        <q-chip>
-          {{ tokensAvailable }}
-        </q-chip>
-      </span>
-    </q-card-section>
-    <q-card-section>
-      Tokens Needed:
-      <q-spinner v-if="loadingCalculateNecessaryTokens" />
-      <span v-if="tokensNeeded" class="text-h4">
-        <q-chip>
-          {{ tokensNeeded }}
-        </q-chip>
-      </span>
-      <span v-else>-</span>
-    </q-card-section>
-  </q-card>
+  <template v-if="!loadingUpload">
+    <DropZone @files-changed="onFileChange" class="col bg-primary text-white" />
+    <q-card class="text-white col bg-primary">
+      <q-card-section>
+        Available Tokens:
+        <q-spinner v-if="loadingGettingAvailableTokens" />
+        <span v-else class="text-h4">
+          <q-chip>
+            {{ tokensAvailable }}
+          </q-chip>
+        </span>
+      </q-card-section>
+      <q-card-section>
+        Tokens Needed:
+        <q-spinner v-if="loadingCalculateNecessaryTokens" />
+        <span v-if="tokensNeeded" class="text-h4">
+          <q-chip>
+            {{ tokensNeeded }}
+          </q-chip>
+        </span>
+        <span v-else>-</span>
+      </q-card-section>
+    </q-card>
+  </template>
   <div class="q-flex column q-gutter-md button-container">
     <div class="row q-gutter-sm q-mx-auto">
       <q-btn @click="uploadFiles" :disable="uploadButtonDisabled" :loading="loadingUpload" color="primary">Upload &

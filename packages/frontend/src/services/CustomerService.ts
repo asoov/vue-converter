@@ -5,8 +5,9 @@ export class CustomerService extends BaseService {
     super(authToken)
   }
 
-  public async getCustomer(id: string) {
-    return await this.axios.post('/customer/get-customer', {
+  public async getCustomer<T, R>(id?: string) {
+    if (!id) throw new Error('CustomerService: No customer id provided')
+    return await this.axios.post<T, R>('/customer/get-customer', {
       id
     })
   }
