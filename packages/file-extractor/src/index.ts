@@ -3,7 +3,6 @@ import { executeApiRequest } from "./executeApiRequest";
 import { getVueFileContents } from "./getVueFileContents";
 import { rimraf } from 'rimraf'
 import { writeFileWithContent } from "./writeVueFile";
-import { clearDirectory } from "utils";
 
 
 async function main() {
