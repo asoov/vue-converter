@@ -1,27 +1,29 @@
 <template>
-  <h1 id="page-title" class="content__title">Profile Page</h1>
-  <div class="content__body">
-    <p id="page-description">
-      <span><strong>Only authenticated users should access this page.</strong></span>
-    </p>
+  <h1 id="page-title">Profile Page</h1>
+  <div class="profile-page content__body">
     <div class="profile-grid">
-      <div class="profile__header">
+      <q-spinner v-if="isLoading" />
+      <div v-else-if="user" class="profile__header">
         <img :src="user.picture" alt="Profile" class="profile__avatar" />
         <div class="profile__headline">
-          <h2 class="profile__title">{{ user.name }}</h2>
+          <h2>{{ user.name }}</h2>
           <span class="profile__description">{{ user.email }}</span>
         </div>
       </div>
-
+      <div v-else>
+        Something went wrong retrieving the user.
+      </div>
     </div>
   </div>
 </template>
 
-<script setup>
-import { computed } from 'vue'
-import PageLayout from "@/components/PageLayout.vue";
+<script setup lang="ts">
 import { useAuth0 } from "@auth0/auth0-vue";
 
-const { user } = useAuth0()
-console.log(user)
+const { user, isLoading } = useAuth0()
 </script>
+<style lang="scss" scoped>
+.profile-page {
+  color: $dark
+}
+</style>

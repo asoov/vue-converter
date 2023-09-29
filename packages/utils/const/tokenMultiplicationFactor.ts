@@ -1,0 +1,1 @@
+export const tokenMultiplicationFactor = 0.7

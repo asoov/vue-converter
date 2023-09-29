@@ -1,20 +1,21 @@
 <template>
+  <BuyTokensContentSection />
   <div class="row q-gutter-md">
     <q-card class="col my-card bg-primary text-white">
       <q-card-section>
-        <div class="text-h4">1000 Tokens</div>
+        <div class="text-h2">1000 Tokens</div>
       </q-card-section>
 
       <q-card-section>
       </q-card-section>
 
       <q-card-actions>
-        <q-btn flat @click="openPaymentLink">Buy</q-btn>
+        <q-btn flat @click="openPaymentLink">Buy!</q-btn>
       </q-card-actions>
     </q-card>
     <q-card class="col my-card bg-primary text-white">
       <q-card-section>
-        <div class="text-h4">Buy 10000 Tokens</div>
+        <div class="text-h2">10000 Tokens</div>
       </q-card-section>
 
       <q-card-section>
@@ -22,13 +23,27 @@
       </q-card-section>
 
       <q-card-actions>
-        <q-btn flat @click="openPaymentLink100">Get More</q-btn>
+        <q-btn flat @click="openPaymentLink100">Buy!</q-btn>
+      </q-card-actions>
+    </q-card>
+    <q-card class="col my-card bg-primary text-white">
+      <q-card-section>
+        <div class="text-h2">10000 Tokens</div>
+      </q-card-section>
+
+      <q-card-section>
+        <div class="text-h2"></div>
+      </q-card-section>
+
+      <q-card-actions>
+        <q-btn flat @click="openPaymentLink100">Buy!</q-btn>
       </q-card-actions>
     </q-card>
   </div>
 </template>
 
 <script setup lang="ts">
+import BuyTokensContentSection from '@/components/BuyTokensContentSection.vue';
 import { useAuth0 } from '@auth0/auth0-vue';
 import { computed } from 'vue';
 

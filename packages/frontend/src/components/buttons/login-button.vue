@@ -1,8 +1,8 @@
 <template>
-  <button class="button__login" @click="handleLogin">Log In</button>
+  <q-btn rounded color="secondary" @click="handleLogin">Log In</q-btn>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useAuth0 } from "@auth0/auth0-vue";
 
 const { loginWithRedirect } = useAuth0();

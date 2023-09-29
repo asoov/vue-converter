@@ -1,13 +1,15 @@
 <template>
   <div class="nav-bar__brand">
     <router-link to="/">
-      <img
-        class="nav-bar__logo"
-        src="https://cdn.auth0.com/blog/hub/code-samples/hello-world/auth0-logo.svg"
-        alt="Auth0 shield logo"
-        width="122"
-        height="36"
-      />
+      <img class="nav-bar__logo" :src="logo" alt="Vue Converter Logo" width="122" height="36" />
     </router-link>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+const logo = ref()
+onMounted(async () => {
+  logo.value = (await import('@/assets/logo/logo1.svg')).default
+})
+</script>
