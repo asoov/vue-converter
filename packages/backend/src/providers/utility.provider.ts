@@ -1,7 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { encode } from 'gpt-3-encoder';
-
 @Injectable()
 export class UtilityService {
   private RAPID_API_PROXY_SECRET_HEADER_KEY = 'x-rapidapi-proxy-secret';

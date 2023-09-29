@@ -7,19 +7,25 @@ import { ChargeCustomerTokensDTO } from './dto/recharge-customer-tokens.dto';
 import * as dynamoose from 'dynamoose'
 import { CustomerSchema } from './customer.schema';
 import { CloudWatchLogsService } from '../providers/cloudwatch-logs.service';
-import { UtilityService } from 'src/providers/utility.provider';
+import { UtilityService } from '../providers/utility.provider';
+import { CustomerRepository } from './customer.repository';
 
 
 @Injectable()
 export class CustomerService {
   private dbInstance: Model<Customer>;
-  constructor(private readonly configService: ConfigService, private readonly utilityService: UtilityService, private readonly cloudWatchLogsService: CloudWatchLogsService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly utilityService: UtilityService,
+    private readonly cloudWatchLogsService: CloudWatchLogsService,
+    private readonly customerRepository: CustomerRepository
+  ) {
     this.dbInstance = dynamoose.model<Customer>('VueConverterTable2', CustomerSchema)
   }
 
   public async getCustomerById(id: string): Promise<Customer> {
     const customerId = this.utilityService.removeAuth0Prefix(id)
-    return await this.dbInstance.get({ id: customerId })
+    return await this.customerRepository.getById(customerId)
   }
 
 

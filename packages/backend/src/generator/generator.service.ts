@@ -7,31 +7,26 @@ import {
 } from 'utils';
 import { UtilityService } from 'src/providers/utility.provider';
 import { CloudWatchLogsService } from 'src/providers/cloudwatch-logs.service';
-import { Model } from 'dynamoose/dist/Model';
-import * as dynamoose from 'dynamoose'
 import { Customer } from 'src/customer/entities/customer.entity';
-import { CustomerSchema } from 'src/customer/customer.schema';
 import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
 import { CustomerService } from 'src/customer/customer.service';
 import { randomUUID } from 'crypto';
 import * as Archiver from 'archiver';
+import { CustomerRepository } from 'src/customer/customer.repository';
 
 @Injectable()
 export class GeneratorService {
 
-  private MAX_TOKEN_COUNT = 10000;
-  private dbInstance: Model<Customer>;
-  private s3 = new AWS.S3()
-
+  private MAX_TOKEN_COUNT: number = 10000;
+  private s3: AWS.S3 = new AWS.S3()
   constructor(
     private readonly openAiService: OpenAIService,
     private readonly utilityService: UtilityService,
     private readonly cloudWatchLogsService: CloudWatchLogsService,
-    private readonly customerService: CustomerService
-  ) {
-    this.dbInstance = dynamoose.model<Customer>('VueConverterTable2', CustomerSchema)
-  }
+    private readonly customerService: CustomerService,
+    private readonly customerRepository: CustomerRepository
+  ) { }
 
   private getScriptPartOfFile(string: string): string {
     return this.utilityService.extractJavaScriptFromHTML(string);
@@ -61,9 +56,12 @@ export class GeneratorService {
 
   private async deductTokensFromCustomerAccount(customer: Customer, tokensNeeded: number) {
     const newTokenCount = customer.aiCredits - tokensNeeded
-    await this.dbInstance.update({ id: customer.id }, {
+    await this.customerRepository.update(customer.id, {
       aiCredits: newTokenCount
     })
+    if (newTokenCount < 0) {
+      this.cloudWatchLogsService.logMessage('deductTokensFromCustomerAccount: Negative aiCredits count reached. Checking the necessary tokens failed.')
+    }
   }
 
   public async generateSingleVue3Template(
@@ -71,7 +69,7 @@ export class GeneratorService {
 
   ): Promise<GenerateSingleVue3FileResponse> {
     const customerId = this.utilityService.removeAuth0Prefix(vueFile.customerId)
-    const customer = await this.dbInstance.get({ id: customerId })
+    const customer = await this.customerRepository.getById(customerId)
     const scriptToConvert = this.getScriptPartOfFile(vueFile.content);
     const tokensNeeded = this.utilityService.getNeededOpenAiTokenCountForString(scriptToConvert)
     this.checkIfCustomerHasEnoughTokens({ customer, tokensNeeded })

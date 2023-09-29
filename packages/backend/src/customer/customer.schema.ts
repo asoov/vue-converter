@@ -1,6 +1,7 @@
-import { Schema } from 'dynamoose';
+import * as dynamoose from 'dynamoose'
+import { Customer } from './entities/customer.entity';
 
-export const CustomerSchema = new Schema({
+export const CustomerSchema = new dynamoose.Schema({
   id: {
     type: String,
     hashKey: true,
@@ -38,3 +39,5 @@ export const CustomerSchema = new Schema({
     }]
   }
 });
+
+export const CustomerModel = dynamoose.model<Customer>('VueConverterTable2', CustomerSchema)

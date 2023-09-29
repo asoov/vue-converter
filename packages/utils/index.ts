@@ -11,3 +11,6 @@ export { Customer } from "./types/Customer"
 export { Process } from "./types/Process"
 export { DynamoValues } from "./enums/dynamoDb"
 
+// consts
+export { tokenMultiplicationFactor } from './const/tokenMultiplicationFactor'
+
