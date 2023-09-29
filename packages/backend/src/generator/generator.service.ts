@@ -19,7 +19,8 @@ import { CustomerRepository } from 'src/customer/customer.repository';
 export class GeneratorService {
 
   private MAX_TOKEN_COUNT: number = 10000;
-  private s3: AWS.S3 = new AWS.S3()
+  private s3: AWS.S3 = new AWS.S3({ signatureVersion: 'v4' })
+
   constructor(
     private readonly openAiService: OpenAIService,
     private readonly utilityService: UtilityService,
@@ -82,6 +83,7 @@ export class GeneratorService {
     return {
       content: this.injectNewScriptIntoVueFile(vueFile.content, result.text),
       fileName: vueFile.fileName,
+      tokensNeeded
     };
   }
 
@@ -109,11 +111,11 @@ export class GeneratorService {
     const tokensNeeded = this.utilityService.getNeededOpenAiTokenCountForString(scriptContentOfFile)
 
     const result = await this.generateVue3Content(scriptContentOfFile)
-    await this.deductTokensFromCustomerAccount(customer, tokensNeeded)
 
     return {
       newFileContent: this.injectNewScriptIntoVueFile(fileContent, result.text),
-      fileName
+      fileName,
+      tokensNeeded
     }
   }
 
@@ -121,22 +123,25 @@ export class GeneratorService {
     files: Array<Express.Multer.File>,
     customerId: string
   ): Promise<any> {
-    try {
-      const sanitizedCustomerId = this.utilityService.removeAuth0Prefix(customerId)
 
+    let processedFiles: GenerateSingleVue3FileResponse[] = []
+    const sanitizedCustomerId = this.utilityService.removeAuth0Prefix(customerId)
+    const customer = await this.customerService.getCustomerById(sanitizedCustomerId)
+
+    try {
       // Check if customer has enough tokens for files
       const tokensNeededForAllFiles = this.calculateTokensNeededForMultipleFiles(files)
-      const customer = await this.customerService.getCustomerById(sanitizedCustomerId)
+
       this.checkIfCustomerHasEnoughTokens({ customer, tokensNeeded: tokensNeededForAllFiles })
 
-      let processedFiles: GenerateSingleVue3FileResponse[] = []
+
 
       const bucketName = 'vue-converter-zips'
 
       const vueFiles = this.filterFilesByFileType(files, '.vue')
 
       for await (const result of this.processConcurrently(vueFiles, (file) => this.processVueFile(file, customer), 10)) {
-        processedFiles.push({ fileName: result.fileName, content: result.newFileContent });
+        processedFiles.push({ fileName: result.fileName, content: result.newFileContent, tokensNeeded: result.tokensNeeded });
       }
 
       const { zipFilePath, zipFileName, unlink } = await this.createZipFile(processedFiles)
@@ -164,7 +169,8 @@ export class GeneratorService {
       throw error;
     }
     finally {
-
+      const summedUpTokensNeeded = processedFiles.reduce((accumulator, file) => accumulator + file.tokensNeeded, 0)
+      await this.deductTokensFromCustomerAccount(customer, summedUpTokensNeeded)
     }
   }
 
