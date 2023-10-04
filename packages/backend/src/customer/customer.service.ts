@@ -78,15 +78,26 @@ export class CustomerService {
   };
 
   private async handleCheckoutSessionCompleted(event: Stripe.Event) {
+    console.log(event)
     const eventDataObject = event.data.object as Stripe.Checkout.Session
     if (!eventDataObject.client_reference_id) {
       this.logErrorToCloudwatch(`Stripe hook didn't provide a client_reference_id: ${eventDataObject.toString()}`)
       throw new BadRequestException('Charging the account with tokens went wrong')
     }
     const customerId = eventDataObject.client_reference_id
-    const tokenAmount = eventDataObject.amount_total
+    const transActionAmount = eventDataObject.amount_total
 
-    await this.writeTokensToCustomerDB({ customerId, purchasedTokenCount: tokenAmount })
+    // Stripe doesn't provice a quantity of the paid goods. So when payment happens we hand over a price per single item and divide the total amount with it to get the quantity
+    // This quantity gets multiplied with the supposed tokens per item
+
+    const priceAmountPerSingleItem = eventDataObject.metadata.priceAmount as unknown as number;
+    const tokenAmountPerItem = eventDataObject.metadata.tokenAmount as unknown as number;
+    const quantity = transActionAmount / priceAmountPerSingleItem
+
+    const tokenAmountToAdd = quantity * tokenAmountPerItem
+
+
+    await this.writeTokensToCustomerDB({ customerId, purchasedTokenCount: tokenAmountToAdd })
   }
 
   private checkStripeSignatureAndReturnEvent({

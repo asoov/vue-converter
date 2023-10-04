@@ -10,7 +10,6 @@ import { CloudWatchLogsService } from 'src/providers/cloudwatch-logs.service';
 import { Customer } from 'src/customer/entities/customer.entity';
 import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
-import { CustomerService } from 'src/customer/customer.service';
 import { randomUUID } from 'crypto';
 import * as Archiver from 'archiver';
 import { CustomerRepository } from 'src/customer/customer.repository';
@@ -25,13 +24,12 @@ export class GeneratorService {
     private readonly openAiService: OpenAIService,
     private readonly utilityService: UtilityService,
     private readonly cloudWatchLogsService: CloudWatchLogsService,
-    private readonly customerService: CustomerService,
     private readonly customerRepository: CustomerRepository
   ) { }
 
-  private getScriptPartOfFile(string: string): string {
-    return this.utilityService.extractJavaScriptFromHTML(string);
-  }
+
+
+
 
   private injectNewScriptIntoVueFile(inputString: string, replacement: string) {
     return this.utilityService.replaceScriptTags(inputString, replacement);
@@ -71,7 +69,7 @@ export class GeneratorService {
   ): Promise<GenerateSingleVue3FileResponse> {
     const customerId = this.utilityService.removeAuth0Prefix(vueFile.customerId)
     const customer = await this.customerRepository.getById(customerId)
-    const scriptToConvert = this.getScriptPartOfFile(vueFile.content);
+    const scriptToConvert = this.utilityService.extractJavaScriptFromHTML(vueFile.content);
     const tokensNeeded = this.utilityService.getNeededOpenAiTokenCountForString(scriptToConvert)
     this.checkIfCustomerHasEnoughTokens({ customer, tokensNeeded })
 
@@ -91,7 +89,9 @@ export class GeneratorService {
     let tokensNeeded = 0;
     files.forEach((file) => {
       const fileContent = file.buffer.toString('utf-8')
-      const scriptContentOfFile = this.getScriptPartOfFile(fileContent)
+      console.log(fileContent)
+      const scriptContentOfFile = this.utilityService.extractJavaScriptFromHTML(fileContent)
+      console.log(scriptContentOfFile)
       tokensNeeded += this.utilityService.getNeededOpenAiTokenCountForString(scriptContentOfFile)
     })
     return tokensNeeded
@@ -103,11 +103,11 @@ export class GeneratorService {
   }
 
 
-  private async processVueFile(file: Express.Multer.File, customer: Customer) {
+  private async processVueFile(file: Express.Multer.File) {
     const fileContent = file.buffer.toString('utf-8');
     const fileName = file.originalname;
 
-    const scriptContentOfFile = this.getScriptPartOfFile(fileContent)
+    const scriptContentOfFile = this.utilityService.extractJavaScriptFromHTML(fileContent)
     const tokensNeeded = this.utilityService.getNeededOpenAiTokenCountForString(scriptContentOfFile)
 
     const result = await this.generateVue3Content(scriptContentOfFile)
@@ -126,7 +126,7 @@ export class GeneratorService {
 
     let processedFiles: GenerateSingleVue3FileResponse[] = []
     const sanitizedCustomerId = this.utilityService.removeAuth0Prefix(customerId)
-    const customer = await this.customerService.getCustomerById(sanitizedCustomerId)
+    const customer = await this.customerRepository.getById(sanitizedCustomerId)
 
     try {
       // Check if customer has enough tokens for files
@@ -140,9 +140,10 @@ export class GeneratorService {
 
       const vueFiles = this.filterFilesByFileType(files, '.vue')
 
-      for await (const result of this.processConcurrently(vueFiles, (file) => this.processVueFile(file, customer), 10)) {
+      for await (const result of this.processConcurrently(vueFiles, (file) => this.processVueFile(file), 10)) {
         processedFiles.push({ fileName: result.fileName, content: result.newFileContent, tokensNeeded: result.tokensNeeded });
       }
+      console.log(processedFiles)
 
       const { zipFilePath, zipFileName, unlink } = await this.createZipFile(processedFiles)
 
@@ -232,7 +233,7 @@ export class GeneratorService {
   private async addBucketIdToCustomerDb(bucketName: string, customer: Customer, fileCount: number, signedUrl: string) {
     try {
       // Step 1: Retrieve the existing item
-      const customerData = await this.customerService.getCustomerById(customer.id)
+      const customerData = await this.customerRepository.getById(customer.id)
 
       if (!customerData) {
         throw new Error('Customer not found');
@@ -259,8 +260,9 @@ export class GeneratorService {
   }
 
   public checkVueFileContentLength(vueFileContent: string): { valid: boolean } {
+    const scriptContent = this.utilityService.extractJavaScriptFromHTML(vueFileContent)
     const tokensNeeded =
-      this.utilityService.getNeededOpenAiTokenCountForString(vueFileContent);
+      this.utilityService.getNeededOpenAiTokenCountForString(scriptContent);
     return { valid: tokensNeeded <= this.MAX_TOKEN_COUNT };
   }
 }
