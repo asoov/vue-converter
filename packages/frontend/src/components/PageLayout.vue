@@ -29,7 +29,7 @@ import MobileNavBar from "@/components/navigation/mobile/mobile-nav-bar.vue";
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-
+  padding: 0 24px 36px;
   margin-top: 8rem;
   max-width: 1200px;
   width: 100%;
