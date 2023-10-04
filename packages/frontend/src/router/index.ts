@@ -9,6 +9,7 @@ const DashboardPage = () => import("@/pages/DashboardPage.vue");
 const TransformSinglePage = () => import("@/pages/TransformSinglePage.vue");
 const TransformMultiplePage = () => import("@/pages/TransformMultiplePage.vue");
 const BuyTokensPage = () => import("@/pages/BuyTokensPage.vue");
+const ImprintPage = () => import("@/pages/ImprintPage.vue");
 
 const routes = [
   {
@@ -45,6 +46,11 @@ const routes = [
     name: "transform-multiple",
     component: TransformMultiplePage,
     beforeEnter: authGuard
+  },
+  {
+    path: "/imprint",
+    name: "imprint",
+    component: ImprintPage,
   },
   {
     path: "/:catchAll(.*)",
