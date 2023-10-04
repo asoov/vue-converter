@@ -15,6 +15,10 @@ export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
+    if (!process.env.AWS_SECRET_ACCESS_KEY || !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_REGION) {
+      throw new Error('No AWS credentials provided via .env file!')
+    }
+
     // Create DynamoDB customer database
 
     new dynamodb.Table(this, 'CustomerDB', {
@@ -23,17 +27,16 @@ export class InfrastructureStack extends Stack {
         name: 'id',
         type: dynamodb.AttributeType.STRING,
       },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,  // Set the billing mode to PAY_PER_REQUEST (or PROVISIONED if preferred)
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY, // Should keep customer database when stack is destroyed
     });
 
     // Create a VPC
     const vpc = new ec2.Vpc(this, 'VPC', {
-      maxAzs: 3
+      natGateways: 0
     });
 
     const ecrRepo = ecr.Repository.fromRepositoryName(this, 'VueConverterRepoImported', 'vue-converter-repo');
-    console.log(ecrRepo)
 
     const ec2Role = new iam.Role(this, 'MyEc2InstanceRole', {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
@@ -81,7 +84,12 @@ export class InfrastructureStack extends Stack {
         docker pull 714722585977.dkr.ecr.eu-central-1.amazonaws.com/vue-converter-repo:tag  
 
         # Run the Docker container
-        docker run -p 80:80 714722585977.dkr.ecr.eu-central-1.amazonaws.com/vue-converter-repo:tag  
+        docker run -p 80:80 --name vue-backend 714722585977.dkr.ecr.eu-central-1.amazonaws.com/vue-converter-repo:tag  
+
+        # AWS env vars need to be exposed to make dynamoose work. Unfortunately dynamoose relies on env vars set on the host and ignores them being set through their config :(
+        docker exec vue-backend export AWS_REGION=${process.env.AWS_REGION}
+        docker exec vue-backend export AWS_ACCESS_KEY_ID=${process.env.AWS_ACCESS_KEY_ID}
+        docker exec vue-backend export AWS_SECRET_ACCESS_KEY=${process.env.AWS_SECRET_ACCESS_KEY}
         ' > /root/startup-script.sh
 
         # Make the script executable
