@@ -7,7 +7,10 @@
       From This Soil GmbH<br />
       Mörikestr. 1<br />
       70178 Stuttgart
+      Germany
     </p>
+
+    <p>Contact: <strong><a href="mailto:support@vue-converter.com">support@vue-converter.com</a></strong></p>
 
     <p><strong>Represented by:</strong><br />
       Adrian Soovary</p>
