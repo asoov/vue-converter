@@ -1,5 +1,9 @@
 import { Stack, StackProps } from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2'
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
+import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { InstanceTarget } from 'aws-cdk-lib/aws-elasticloadbalancingv2-targets';
 import * as route53 from 'aws-cdk-lib/aws-route53';
@@ -10,6 +14,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { DynamoValues } from 'utils'
+import { ec2UserData } from './ec2-user-data'
 
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -19,8 +24,17 @@ export class InfrastructureStack extends Stack {
       throw new Error('No AWS credentials provided via .env file!')
     }
 
-    // Create DynamoDB customer database
 
+    // The S3 bucket to host the SPA
+    const websiteBucket = new s3.Bucket(this, 'WebsiteBucket', {
+      bucketName: 'vue-converter-spa-website',
+      websiteIndexDocument: 'index.html',
+      websiteErrorDocument: 'index.html', // For SPA routing, fallback to index.html,
+      publicReadAccess: true,
+    });
+    // websiteBucket.grantPublicAccess('*', 's3:GetObject'); // Allow public access to the bucket
+
+    // Create DynamoDB customer database
     new dynamodb.Table(this, 'CustomerDB', {
       tableName: DynamoValues.TableName,
       partitionKey: {
@@ -66,50 +80,7 @@ export class InfrastructureStack extends Stack {
       },
       keyName: "Adrian's Macbook Pro",
       role: ec2Role,  // Associate the role with the instance
-      userData: ec2.UserData.custom(`#!/bin/bash
-        # Create a script that contains the actual user data logic
-        echo '#!/bin/bash
-        # Add your startup logic here
-        # Update packages and install necessary packages
-        yum update -y
-        yum install -y git
-        yum install -y jq  # jq is a utility to process JSON
-        yum install -y docker
-        sudo service docker start
-
-        # Login to ECR
-        aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 714722585977.dkr.ecr.eu-central-1.amazonaws.com
-
-        # Pull the Docker image from your private ECR repository
-        docker pull 714722585977.dkr.ecr.eu-central-1.amazonaws.com/vue-converter-repo:tag  
-
-        # Run the Docker container
-        docker run -p 80:80 --name vue-backend 714722585977.dkr.ecr.eu-central-1.amazonaws.com/vue-converter-repo:tag  
-
-        # AWS env vars need to be exposed to make dynamoose work. Unfortunately dynamoose relies on env vars set on the host and ignores them being set through their config :(
-        docker exec vue-backend export AWS_REGION=${process.env.AWS_REGION}
-        docker exec vue-backend export AWS_ACCESS_KEY_ID=${process.env.AWS_ACCESS_KEY_ID}
-        docker exec vue-backend export AWS_SECRET_ACCESS_KEY=${process.env.AWS_SECRET_ACCESS_KEY}
-        ' > /root/startup-script.sh
-
-        # Make the script executable
-        chmod +x /root/startup-script.sh
-
-        # Create a systemd service unit file to run the script
-        echo '[Unit]
-        Description=Run user data on startup
-        After=network.target
-
-        [Service]
-        ExecStart=/bin/bash /root/startup-script.sh
-
-        [Install]
-        WantedBy=multi-user.target' > /etc/systemd/system/userdata.service
-
-        # Enable and start the service so it runs on every subsequent boot
-        systemctl enable userdata.service
-        systemctl start userdata.service
-      `),
+      userData: ec2.UserData.custom(ec2UserData),
     });
 
 
@@ -126,6 +97,33 @@ export class InfrastructureStack extends Stack {
       securityGroup: lbSg
     });
 
+    // ACM certificate
+    // needs to be a certificate in us-east-1 due to CloudFront requirements
+    const certificate = acm.Certificate.fromCertificateArn(this, 'Certificate', process.env.ACM_CERTIFICATE_ARN_US ?? '');
+
+    // CloudFront distribution
+    const distribution = new cloudfront.Distribution(this, 'Distribution', {
+      defaultBehavior: {
+        origin: new origins.S3Origin(websiteBucket),
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      },
+      defaultRootObject: 'index.html',
+      certificate,
+      errorResponses: [{
+        httpStatus: 404,
+        responseHttpStatus: 200,
+        responsePagePath: 'index.html',
+      }],
+      domainNames: ['vue-converter.com'],
+      additionalBehaviors: {
+        '/api/*': {
+          origin: new origins.LoadBalancerV2Origin(lb),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER,
+        },
+      },
+    });
+
 
     // Create a security group for the instance
     const sg = new ec2.SecurityGroup(this, 'Instance security group', { vpc });
@@ -140,7 +138,7 @@ export class InfrastructureStack extends Stack {
 
     const listenerHttps = lb.addListener('HTTPSListener', {
       port: 443,
-      certificates: [{ certificateArn: process.env.ACM_CERTIFICATE_ARN ?? '' }]
+      certificates: [{ certificateArn: process.env.ACM_CERTIFICATE_ARN_EU ?? '' }]
     });
     const listenerHttp = lb.addListener('HTTPListener', {
       port: 80,
@@ -158,13 +156,13 @@ export class InfrastructureStack extends Stack {
 
     // Create Route53 record
     const myZone = route53.HostedZone.fromLookup(this, 'MyZone', {
-      domainName: 'fromthissoil.de',
+      domainName: 'vue-converter.com',
+
     });
 
     new route53.ARecord(this, 'SubdomainRecord', {
       zone: myZone,
-      recordName: 'vue2converter',
-      target: route53.RecordTarget.fromAlias(new targets.LoadBalancerTarget(lb)),
+      target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution)),
     });
   }
 }
