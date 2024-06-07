@@ -2,7 +2,6 @@ import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
-import { CompletionCreateParamsNonStreaming } from 'openai/resources/chat';
 import { LLMChain, PromptTemplate } from 'langchain';
 
 @Injectable()
@@ -35,7 +34,7 @@ export class OpenAIService {
 
   generateGPTPrompt(
     stringifiedComponentCode: string,
-  ): CompletionCreateParamsNonStreaming {
+  ): any {
     return {
       model: 'gpt-3.5-turbo',
       messages: [

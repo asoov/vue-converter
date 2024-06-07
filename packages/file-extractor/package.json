@@ -2,11 +2,11 @@
   "name": "file-extractor",
   "packageManager": "yarn@3.6.3",
   "dependencies": {
-    "@types/node": "^20.5.6",
-    "axios": "^1.4.0",
+    "@types/node": "^20.14.2",
+    "axios": "^1.7.2",
     "rimraf": "^5.0.1",
     "ts-node": "^10.9.1",
-    "typescript": "^5.2.2",
+    "typescript": "^5.4.5",
     "utils": "^0.0.1"
   },
   "scripts": {

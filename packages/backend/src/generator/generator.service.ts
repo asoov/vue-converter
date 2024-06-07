@@ -89,9 +89,7 @@ export class GeneratorService {
     let tokensNeeded = 0;
     files.forEach((file) => {
       const fileContent = file.buffer.toString('utf-8')
-      console.log(fileContent)
       const scriptContentOfFile = this.utilityService.extractJavaScriptFromHTML(fileContent)
-      console.log(scriptContentOfFile)
       tokensNeeded += this.utilityService.getNeededOpenAiTokenCountForString(scriptContentOfFile)
     })
     return tokensNeeded

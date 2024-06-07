@@ -32,7 +32,6 @@ export class InfrastructureStack extends Stack {
       websiteErrorDocument: 'index.html', // For SPA routing, fallback to index.html,
       publicReadAccess: true,
     });
-    // websiteBucket.grantPublicAccess('*', 's3:GetObject'); // Allow public access to the bucket
 
     // Create DynamoDB customer database
     new dynamodb.Table(this, 'CustomerDB', {
